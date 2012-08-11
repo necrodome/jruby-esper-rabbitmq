@@ -1,3 +1,6 @@
+# gem install amqp
+
+# require 'rubygems'
 require 'amqp'
 require 'java'
 
@@ -19,7 +22,6 @@ java_import 'javax.xml.parsers.DocumentBuilder'
 java_import 'javax.xml.parsers.DocumentBuilderFactory'
 java_import 'java.io.ByteArrayInputStream'
 java_import 'java.io.StringReader';
-
 
 include Java
 
@@ -71,7 +73,7 @@ EventMachine.run do
   statement.addListener(listener)
 
   # Second statement
-  epService.getEPAdministrator.createEPL("select count(*) from MyXMLNodeEvent.win:time(3 min) output snapshot every 30 seconds").addListener(EsperListener.new(exchange, write_queue))
+  epService.getEPAdministrator.createEPL("select count(*) from MyXMLNodeEvent.win:time(3 min) output snapshot every 5 seconds").addListener(EsperListener.new(exchange, write_queue))
 
   read_queue.subscribe do |payload|
     puts "Received a message. Pushing to Esper"
@@ -82,26 +84,10 @@ EventMachine.run do
          .newDocumentBuilder()
          .parse(ByteArrayInputStream.new(payload.to_java_bytes))
          .getDocumentElement();
-       epService.getEPRuntime.sendEvent(node)
+    epService.getEPRuntime.sendEvent(node)
     # end
 
   end
-
-  xml = <<XML
-  <event:Event xmlns:event="http://cep.true-synergy.nl">
-  <event:custID>123abc</event:custID>
-  <event:email>  [obscured]  </event:email>
-  <event:host>server01</event:host>
-  <event:timeDate>5-5-2012 6:85</event:timeDate>
-  <event:description>Description text</event:description>
-  <event:component>HTTP</event:component>
-  <event:severity>Error</event:severity>
-  <event:eventID>1234</event:eventID>
-  </event:Event>
-XML
-
-  # Artifical test
-  Thread.new { 50_000.times { exchange.publish xml, :routing_key => read_queue.name }}
 
   # hit Control + C to stop
   Signal.trap("INT")  { connection.close { EventMachine.stop }}
