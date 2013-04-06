@@ -11,12 +11,13 @@ EventMachine.run do
   exchange = channel.default_exchange
 
   xml = <<XML
-  <event:Event xmlns:event="http://cep.true-synergy.nl">
+  <event:Event xmlns:event="http://x.com">
   <event:custID>123abc</event:custID>
-  <event:email>  [obscured]  </event:email>
-  <event:host>server01</event:host>
+  <event:status>cleared</event:status>
+  <event:email></event:email>
+  <event:host>gmdh-nt01</event:host>
   <event:timeDate>5-5-2012 6:85</event:timeDate>
-  <event:description>Description text</event:description>
+  <event:description>Problemen met HTTP</event:description>
   <event:component>HTTP</event:component>
   <event:severity>Error</event:severity>
   <event:eventID>1234</event:eventID>
@@ -26,4 +27,5 @@ XML
   num_of_messages = ARGV[0].to_i || 50_000
   puts "Writing #{num_of_messages} messages to queue: #{read_queue.name}.."
   num_of_messages.times { exchange.publish xml, :routing_key => read_queue.name }
+
 end

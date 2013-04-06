@@ -20,6 +20,7 @@ java_import 'org.apache.commons.logging.LogFactory'
 
 java_import 'javax.xml.parsers.DocumentBuilder'
 java_import 'javax.xml.parsers.DocumentBuilderFactory'
+java_import 'javax.xml.xpath.XPathConstants'
 java_import 'java.io.ByteArrayInputStream'
 java_import 'java.io.StringReader';
 
@@ -60,20 +61,21 @@ EventMachine.run do
   # config.configure("esper.cfg.xml")
   desc = ConfigurationEventTypeXMLDOM.new
   desc.setRootElementName("Event")
-  desc.addNamespacePrefix("event", "http://cep.true-synergy.nl")
+  desc.addNamespacePrefix("event", "http://x.com")
   desc.setRootElementNamespace("event")
   desc.setDefaultNamespace("event")
+  desc.addXPathProperty("email", "/event:Event/event:email", XPathConstants::STRING)
 
   config.addEventType("MyXMLNodeEvent", desc)
 
   epService = EPServiceProviderManager.getDefaultProvider(config)
 
   listener = EsperListener.new(exchange, write_queue)
-  statement = epService.getEPAdministrator.createEPL("select email,eventID from MyXMLNodeEvent")
+  statement = epService.getEPAdministrator.createEPL("select * from MyXMLNodeEvent where severity = 'Error'")
   statement.addListener(listener)
 
   # Second statement
-  epService.getEPAdministrator.createEPL("select count(*) from MyXMLNodeEvent.win:time(3 min) output snapshot every 5 seconds").addListener(EsperListener.new(exchange, write_queue))
+  epService.getEPAdministrator.createEPL("select count(*) from MyXMLNodeEvent.win:time(3 min) having count(*) > 100 output snapshot every 5 seconds").addListener(EsperListener.new(exchange, write_queue))
 
   read_queue.subscribe do |payload|
     puts "Received a message. Pushing to Esper"
@@ -88,6 +90,8 @@ EventMachine.run do
     # end
 
   end
+
+  # EventMachine::add_timer 30, proc { puts "Executing timer event: #{Time.now}"; statement.removeListener(listener); statement = nil }
 
   # hit Control + C to stop
   Signal.trap("INT")  { connection.close { EventMachine.stop }}

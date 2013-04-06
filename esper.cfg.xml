@@ -5,8 +5,8 @@
 http://www.espertech.com/schema/esper http://www.espertech.com/schema/esper/esper-configuration-3.0.xsd">
 
   <event-type name="MyXMLNodeEvent">
-    <xml-dom root-element-name="Event" default-namespace="http://cep.true-synergy.nl" root-element-namespace="http://cep.true-synergy.nl">
-      <namespace-prefix prefix="event" namespace="http://cep.true-synergy.nl"/>
+    <xml-dom root-element-name="Event" default-namespace="http://x.com" root-element-namespace="http://x.com">
+      <namespace-prefix prefix="event" namespace="http://x.com"/>
     </xml-dom>
   </event-type>
 
